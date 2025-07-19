@@ -1,3 +1,4 @@
+require("dotenv").config();
 const path = require("node:path");
 const { Pool } = require("pg");
 const express = require("express");
@@ -25,6 +26,7 @@ app.get("/", (req, res) => res.render("index"));
 app.get("/sign-up", (req, res) => res.render("sign-up-form"));
 
 app.post("/sign-up", async (req, res, next) => {
+  console.log(req.body.password, typeof req.body.password);
   try {
     await pool.query("INSERT INTO users (username, password) VALUES ($1, $2)", [
       req.body.username,
