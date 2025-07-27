@@ -51,8 +51,8 @@ app.get("/sign-up", (req, res) => res.render("sign-up-form"));
 app.post("/sign-up", async (req, res, next) => {
   try {
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    await pool.query("INSERT INTO users (username, password) VALUES ($1, $2)", [
-      req.body.username,
+    await pool.query("INSERT INTO users (email, password) VALUES ($1, $2)", [
+      req.body.email,
       hashedPassword,
     ]);
     res.redirect("/");
