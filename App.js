@@ -82,28 +82,31 @@ app.get("/log-out", (req, res, next) => {
 app.listen(3000, () => console.log("app listening on port 3000!"));
 
 passport.use(
-  new LocalStrategy(async (username, password, done) => {
-    try {
-      const { rows } = await pool.query(
-        "SELECT * FROM users WHERE username = $1",
-        [username]
-      );
-      const user = rows[0];
+  new LocalStrategy(
+    { usernameField: "email" },
+    async (email, password, done) => {
+      try {
+        const { rows } = await pool.query(
+          "SELECT * FROM users WHERE email = $1",
+          [email]
+        );
+        const user = rows[0];
 
-      if (!user) {
-        return done(null, false, { message: "Incorrect username" });
+        if (!user) {
+          return done(null, false, { message: "Incorrect email" });
+        }
+
+        const match = bcrypt.compare(password, user.password);
+        if (!match) {
+          return done(null, false, { message: "Incorrect password" });
+        }
+
+        return done(null, user);
+      } catch (err) {
+        return done(err);
       }
-
-      const match = bcrypt.compare(password, user.password);
-      if (!match) {
-        return done(null, false, { message: "Incorrect password" });
-      }
-
-      return done(null, user);
-    } catch (err) {
-      return done(err);
     }
-  })
+  )
 );
 
 passport.serializeUser((user, done) => {

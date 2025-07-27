@@ -7,10 +7,16 @@
   <body>
     <h1>Sign Up</h1>
     <form action="/sign-up" method="POST">
-      <label for="username">Username</label>
-      <input id="username" name="username" placeholder="username" type="text" />
+      <label for="first_name">First Name</label>
+      <input id="first_name" name="first_name" type="text" />
+      <label for="last_name">Last Name</label>
+      <input id="last_name" name="last_name" type="text" />
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" />
       <label for="password">Password</label>
       <input id="password" name="password" type="password" />
+      <label for="confirm_password">Confirm Password</label>
+      <input id="confirm_password" name="confirm_password" type="password" />
       <button type="submit">Sign Up</button>
     </form>
   </body>
