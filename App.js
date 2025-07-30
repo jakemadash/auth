@@ -49,12 +49,13 @@ app.get("/", (req, res) => {
 app.get("/sign-up", (req, res) => res.render("sign-up-form"));
 
 app.post("/sign-up", async (req, res, next) => {
+  const { first_name, last_name, email, password } = req.body;
   try {
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    await pool.query("INSERT INTO users (email, password) VALUES ($1, $2)", [
-      req.body.email,
-      hashedPassword,
-    ]);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await pool.query(
+      "INSERT INTO users (first_name, last_name, email, password_hash) VALUES ($1, $2, $3, $4)",
+      [first_name, last_name, email, hashedPassword]
+    );
     res.redirect("/");
   } catch (error) {
     console.error(error);
@@ -96,7 +97,7 @@ passport.use(
           return done(null, false, { message: "Incorrect email" });
         }
 
-        const match = bcrypt.compare(password, user.password);
+        const match = bcrypt.compare(password, user.password_hash);
         if (!match) {
           return done(null, false, { message: "Incorrect password" });
         }
