@@ -5,8 +5,17 @@
     <title>Log In</title>
   </head>
   <body>
-    <% if (currentUser) {%>
+    <% if (currentUser) { %>
     <h1>WELCOME BACK <%= currentUser.first_name %></h1>
+
+    <% if (currentUser.membership_status === 'guest') { %>
+    <form action="/membership" method="POST">
+      <label for="secret_code">Secret Code</label>
+      <input id="secret_code" name="secret_code" type="text" />
+      <button type="submit">Submit</button>
+    </form>
+    <% } %>
+
     <a href="/log-out">LOG OUT</a>
     <% } else { %>
     <h1>please log in</h1>
@@ -17,6 +26,6 @@
       <input id="password" name="password" type="password" />
       <button type="submit">Log In</button>
     </form>
-    <%}%>
+    <% } %>
   </body>
 </html>

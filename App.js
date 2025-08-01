@@ -7,6 +7,7 @@ const session = require("express-session");
 const pgSession = require("connect-pg-simple")(session);
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
+const { body, validationResult } = require("express-validator");
 
 const pool = new Pool({
   host: process.env.DB_HOST,
@@ -46,22 +47,59 @@ app.get("/", (req, res) => {
   res.render("index");
 });
 
-app.get("/sign-up", (req, res) => res.render("sign-up-form"));
+app.get("/sign-up", (req, res) =>
+  res.render("sign-up-form", { errors: [], formData: {} })
+);
 
-app.post("/sign-up", async (req, res, next) => {
-  const { first_name, last_name, email, password } = req.body;
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await pool.query(
-      "INSERT INTO users (first_name, last_name, email, password_hash) VALUES ($1, $2, $3, $4)",
-      [first_name, last_name, email, hashedPassword]
-    );
-    res.redirect("/");
-  } catch (error) {
-    console.error(error);
-    next(error);
+app.post("/membership", async (req, res, next) => {
+  const { secret_code } = req.body;
+
+  if (secret_code === "cubular") {
+    try {
+      await pool.query(
+        "UPDATE users SET membership_status = 'member' WHERE id = $1",
+        [req.user.id]
+      );
+      res.redirect("/");
+    } catch (err) {
+      next(err);
+    }
+  } else {
+    res.status(401).send("Invalid secret code");
   }
 });
+
+app.post(
+  "/sign-up",
+  body("confirm_password").custom((value, { req }) => {
+    if (value !== req.body.password) {
+      throw new Error("Passwords do not match");
+    }
+    return true;
+  }),
+  async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).render("sign-up-form", {
+        errors: errors.array(),
+        formData: req.body,
+      });
+    }
+
+    const { first_name, last_name, email, password } = req.body;
+    try {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await pool.query(
+        "INSERT INTO users (first_name, last_name, email, password_hash) VALUES ($1, $2, $3, $4)",
+        [first_name, last_name, email, hashedPassword]
+      );
+      res.redirect("/");
+    } catch (error) {
+      console.error(error);
+      next(error);
+    }
+  }
+);
 
 app.post(
   "/log-in",
