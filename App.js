@@ -51,24 +51,6 @@ app.get("/sign-up", (req, res) =>
   res.render("sign-up-form", { errors: [], formData: {} })
 );
 
-app.post("/membership", async (req, res, next) => {
-  const { secret_code } = req.body;
-
-  if (secret_code === "cubular") {
-    try {
-      await pool.query(
-        "UPDATE users SET membership_status = 'member' WHERE id = $1",
-        [req.user.id]
-      );
-      res.redirect("/");
-    } catch (err) {
-      next(err);
-    }
-  } else {
-    res.status(401).send("Invalid secret code");
-  }
-});
-
 app.post(
   "/sign-up",
   body("confirm_password").custom((value, { req }) => {
@@ -116,6 +98,39 @@ app.get("/log-out", (req, res, next) => {
     }
     res.redirect("/");
   });
+});
+
+app.post("/membership", async (req, res, next) => {
+  const { secret_code } = req.body;
+
+  if (secret_code === "cubular") {
+    try {
+      await pool.query(
+        "UPDATE users SET membership_status = 'member' WHERE id = $1",
+        [req.user.id]
+      );
+      res.redirect("/");
+    } catch (err) {
+      next(err);
+    }
+  } else {
+    res.status(401).send("Invalid secret code");
+  }
+});
+
+app.post("/messages", async (req, res, next) => {
+  const { title, message } = req.body;
+  const user_id = req.user.id;
+
+  try {
+    await pool.query(
+      "INSERT INTO messages (title, body, user_id) VALUES ($1, $2, $3)",
+      [title, message, user_id]
+    );
+    res.redirect("/");
+  } catch (err) {
+    next(err);
+  }
 });
 
 app.listen(3000, () => console.log("app listening on port 3000!"));
